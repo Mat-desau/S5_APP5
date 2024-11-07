@@ -39,7 +39,7 @@ Phi = rad2deg(atan(-pi/log(Mp_A/100)));
 Zeta = cosd(Phi);
 
 %On doit trouver le plus grand des Omega_n
-% Omega_n = (1+(1*Zeta)+(1.4*(Zeta^2)))/Tr_10_A;
+%Omega_n = (1+(1*Zeta)+(1.4*(Zeta^2)))/Tr_10_A
 Omega_n = 4/(Ts_A*Zeta);
 
 %On trouve Omega_a pour simplifier les P_etoile
@@ -48,6 +48,7 @@ Omega_a = Omega_n*sqrt(1-Zeta^2);
 %Ajustement de P_etoile
 Ajout_Omega_n = 0;
 Ajout_Omega_a = -5.2;
+Ajout_Omega_a = 0;
 
 %On trouve P_etoile
 P_etoile_A = (-Zeta*Omega_n + Ajout_Omega_n) + (Omega_a + Ajout_Omega_a)*i;
@@ -58,10 +59,11 @@ Angle_AZ = (rad2deg(angle(frsp)));
 clear frsp
 
         %Valider c'est de combien qu'on ajouter
-        % figure
-        % hold on
-        % pzmap(TF_AZ)
-        % scatter(real(P_etoile), imag(P_etoile), 100, "square", 'black')
+        figure
+        hold on
+        rlocus(TF_AZ, "red")
+        scatter(real(P_etoile_A), imag(P_etoile_A), 100, "*", 'black')
+        scatter(real(P_etoile_A), imag(-P_etoile_A), 100, "*", 'black')
         %En validant avec le pzmap il est possible de voir qu'on dépassera pas 360 degree
 
 %Calculs qui aideront dans les étapes suivantes
@@ -122,8 +124,8 @@ TF_Finale_AZ_BF = feedback(TF_Finale_AZ, 1);
 stepinfo(TF_Finale_AZ_BF)
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_AZ);
-Gm = 20*log10(Gm)
-Rm = (Pm/wcp)*(pi/180)
+Gm = 20*log10(Gm);
+Rm = (Pm/wcp)*(pi/180);
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp
