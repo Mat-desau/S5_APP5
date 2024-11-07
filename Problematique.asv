@@ -29,9 +29,10 @@ ERP_para_EL_A = 0.08; %deg
 %% Variables Télescope B
 BW_B = 10; %rad/s
 PM_B = 50; %deg +- 1 deg
+
+%Erreurs
 ERP_rampe_B = 0.005; %deg
 t_ERP_rampe_B = 8; %sec
-
 
 %% Conception spécifications Télescope A
 Phi = rad2deg(atan(-pi/log(Mp_A/100)));
@@ -44,20 +45,24 @@ Omega_n = 4/(Ts_A*Zeta);
 %On trouve Omega_a pour simplifier les P_etoile
 Omega_a = Omega_n*sqrt(1-Zeta^2);
 
+%Ajustement de P_etoile
+Ajout_Omega_n = 0;
+Ajout_Omega_a = -5.2;
+
 %On trouve P_etoile
-P_etoile_A = -Zeta*Omega_n + Omega_a*i;
+P_etoile_A = (-Zeta*Omega_n + Ajout_Omega_n) + (Omega_a + Ajout_Omega_a)*i;
 
 %% Calcul pour Avance phase Azimut Télescope A
 frsp = evalfr(TF_AZ, P_etoile_A);
 Angle_AZ = (rad2deg(angle(frsp)));
 clear frsp
 
-%Valider c'est de combien qu'on ajouter
-% figure
-% hold on
-% pzmap(TF_AZ)
-% scatter(real(P_etoile), imag(P_etoile), 100, "square", 'black')
-%En validant avec le pzmap il est possible de voir qu'on dépassera pas 360 degree
+        %Valider c'est de combien qu'on ajouter
+        % figure
+        % hold on
+        % pzmap(TF_AZ)
+        % scatter(real(P_etoile), imag(P_etoile), 100, "square", 'black')
+        %En validant avec le pzmap il est possible de voir qu'on dépassera pas 360 degree
 
 %Calculs qui aideront dans les étapes suivantes
 Angle_AZ = Angle_AZ - 360;
@@ -111,26 +116,74 @@ K_RePh_AZ = 1;
 %Nouvelle fonction de transfert d'avance de phase et retard
 TF_Finale_AZ = TF_Kr_AZ * K_RePh_AZ;
 
-%Faire un step de la finale
-% TF_Finale_AZ_BF = feedback(TF_Finale_AZ, 1)
-% step(TF_Finale_AZ_BF)
+%% Validation système AZ
+TF_Finale_AZ_BF = feedback(TF_Finale_AZ, 1);
+%On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
+stepinfo(TF_Finale_AZ_BF)
+%on vérifie GM > 10 dB      RM > 0.09s
+[Gm, Pm, wcg, wcp] = margin(TF_Finale_AZ);
+Gm = 20*log10(Gm)
+Rm = (Pm/wcp)*(pi/180)
 
+                    %Effacer les non utiliser
+                    clear Gm Pm wcg wcp
                     %Clear les variables
                     clear Kvel_AZ Kvel_etoile_AZ K_etoile_AZ Z_RePh_AZ P_RePh_AZ TF_Kr_AZ
+                    clear P_etoile_A Ajout_Omega_n Ajout_Omega_a
 
 
 
+%% Calcul pour PI Elevation Télescope A
+Diviser = 10;
 
-%% Calcul pour Avance phase Elevation Télescope A
-frsp = evalfr(TF_EL, P_etoile_A);
+%Ajustement de P_etoile
+Ajout_Omega_n = 0;
+Ajout_Omega_a = 0;
+
+%On trouve P_etoile
+P_etoile_A = -Zeta*(Omega_n + Ajout_Omega_n) + (Omega_a + Ajout_Omega_a)*i;
+
+%Ajouter le PI à la fonction de transfert pour avoir classe 2
+TF_EL_PI = TF_EL * tf([1], [1 0]);
+
+        %Valider c'est de combien qu'on ajouter
+        % figure
+        % hold on
+        % pzmap(TF_EL)
+        % scatter(real(P_etoile_A), imag(P_etoile_A), 100, "square", 'black')
+
+%Trouver les poles et zeros
+Z_EL = real(P_etoile_A) / Diviser;
+
+%Cree une sous fonction de transfert pour trouver le Kpi
+TF_Kpi_EL = tf([1 -Z_EL], [1]) * TF_EL_PI;
+
+%Calcul du K_PI_EL
+K_PI_EL = 1/abs(evalfr(TF_Kpi_EL, P_etoile_A));
+
+%Nouvelle fonction de transfert de PI
+TF_PI_EL = TF_Kpi_EL * K_PI_EL;
+
+% figure
+% hold on
+% rlocus(TF_EL, 'red');
+% scatter(real(P_etoile_A),imag(P_etoile_A), '^', "blue");
+% scatter(real(P_etoile_A),imag(-P_etoile_A), '^', "blue");
+
+
+                    %Clear les variables
+                    clear TF_Ka_EL P_AZ Z_EL Phi_P_EL Phi_Z_EL Angle_EL Delta_Phi_EL Alpha_EL
+
+%% Calcul pour retard phase cascades Elevation Télescope A
+frsp = evalfr(TF_PI_EL, P_etoile_A);
 Angle_EL = (rad2deg(angle(frsp)));
 clear frsp
 
 %Valider c'est de combien qu'on ajouter
 % figure
 % hold on
-% pzmap(TF_EL)
-% scatter(real(P_etoile_A), imag(P_etoile_A), 100, "square", 'black')
+% pzmap(TF_AZ)
+% scatter(real(P_etoile), imag(P_etoile), 100, "square", 'black')
 %En validant avec le pzmap il est possible de voir qu'on dépassera pas 360 degree
 
 %Calculs qui aideront dans les étapes suivantes
@@ -147,49 +200,16 @@ Z_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_EL));
 P_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_EL));
 
 %Cree une sous fonction de transfert pour trouver le Ka
-TF_Ka_EL = tf([1 -Z_EL], [1 -P_EL]) * TF_EL;
+TF_Ka_EL = tf([1 -Z_EL], [1 -P_EL]) * TF_PI_EL;
 
-%Calcul du K_AvPh_EL
+%Calcul du K_AvPh_AZ
 K_AvPh_EL = 1/abs(evalfr(TF_Ka_EL, P_etoile_A));
 
 %Nouvelle fonction de transfert d'avance de phase
-TF_AvPh_EL = TF_Ka_EL * K_AvPh_EL;
+TF_AvPh_EL = TF_Ka_EL * K_AvPh_EL
 
                     %Clear les variables
-                    clear TF_Ka_EL P_AZ Z_EL Phi_P_EL Phi_Z_EL Angle_EL Delta_Phi_EL Alpha_EL
+                    clear Kacc_EL Kacc_etoile_EL K_etoile_EL Z_RePh_EL P_RePh_EL TF_Kr_EL
 
-%% Calcul pour retard phase cascades Elevation Télescope A
-Diviser = 10;
-
-%Trouver les valeurs des numérateurs et denominateur
-[num_temp, den_temp] = tfdata(TF_AvPh_EL, 'v');
-
-%Trouver les K_etoile avec erreurs
-Kvel_EL = (num_temp(end))/(den_temp(end-1));
-Kvel_etoile_EL = 1/ERP_rampe_AZ_A;
-K_etoile_AZ = Kvel_etoile_AZ/Kvel_AZ;
-clear num_temp den_temp
-
-%Trouver poles et zeros
-Z_RePh_AZ = real(P_etoile_A)/Diviser;
-P_RePh_AZ = Z_RePh_AZ/K_etoile_AZ;
-
-%Cree une sous fonction de transfert pour trouver le Ka
-TF_Kr_AZ = tf([1 -Z_RePh_AZ], [1 -P_RePh_AZ]) * TF_AvPh_AZ;
-
-%Calcul du K_RePh_AZ
-K_RePh_AZ = 1/abs(evalfr(TF_Kr_AZ, P_etoile_A));
-%on voit que c'est environ 1 donc on change pour a
-K_RePh_AZ = 1;
-
-%Nouvelle fonction de transfert d'avance de phase et retard
-TF_Finale_AZ = TF_Kr_AZ * K_RePh_AZ;
-
-%Faire un step de la finale
-% TF_Finale_AZ_BF = feedback(TF_Finale_AZ, 1)
-% step(TF_Finale_AZ_BF)
-
-                    %Clear les variables
-                    clear Kvel_AZ Kvel_etoile_AZ K_etoile_AZ Z_RePh_AZ P_RePh_AZ TF_Kr_AZ
-
+%Assurer la fin du document
 disp("Hello World")
