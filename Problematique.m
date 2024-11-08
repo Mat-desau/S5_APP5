@@ -77,10 +77,15 @@ Z_AZ = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_AZ));
 P_AZ = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_AZ));
 
 %Cree une sous fonction de transfert pour trouver le Ka
-TF_Ka_AZ = tf([1 -Z_AZ], [1 -P_AZ]) * TF_AZ;
+TF_Ka_AZ2 = tf([1 -Z_AZ], [1 -P_AZ]);
+TF_Ka_AZ = TF_Ka_AZ2 * TF_AZ;
 
 %Calcul du K_AvPh_AZ
 K_AvPh_AZ = 1/abs(evalfr(TF_Ka_AZ, P_etoile_A));
+
+%Temporaire pour rapport
+TF_Ka_AZ2 = TF_Ka_AZ2 * K_AvPh_AZ;
+clear TF_Ka_AZ2
 
 %Nouvelle fonction de transfert d'avance de phase
 TF_AvPh_AZ = TF_Ka_AZ * K_AvPh_AZ;
@@ -102,17 +107,22 @@ Z_RePh_AZ = real(P_etoile_A)/Diviser;
 P_RePh_AZ = Z_RePh_AZ/K_etoile_AZ;
 
 %Cree une sous fonction de transfert pour trouver le Ka
-TF_Kr_AZ = tf([1 -Z_RePh_AZ], [1 -P_RePh_AZ]) * TF_AvPh_AZ;
+TF_Kr_AZ2 = tf([1 -Z_RePh_AZ], [1 -P_RePh_AZ]);
+TF_Kr_AZ = TF_Kr_AZ2 * TF_AvPh_AZ;
 
 %Calcul du K_RePh_AZ
 K_RePh_AZ = 1/abs(evalfr(TF_Kr_AZ, P_etoile_A));
 %on voit que c'est environ 1 donc on change pour a
 K_RePh_AZ = 1;
 
+%Temporaire pour rapport
+TF_Kr_AZ2 = TF_Kr_AZ2 * K_RePh_AZ;
+clear TF_Kr_AZ2
+
 %Nouvelle fonction de transfert d'avance de phase et retard
 TF_RePh_AvPh_AZ = TF_Kr_AZ * K_RePh_AZ;
 
-%% Coupe bande AZ Téléscope 
+%% Coupe bande AZ Téléscope A
 Omega_o = 54.8; %Peak sur le bode
 X = 0.2; %
 Kfcp = 1;
@@ -129,7 +139,7 @@ TF_Finale_AZ = TF_Coupe_Bande_AZ * TF_RePh_AvPh_AZ;
 TF_Finale_BF_AZ = feedback(TF_Finale_AZ, 1);
 
 
-%% Demande pour rapport
+%% Demande pour rapport 
 %Rlocus du système avec les P desirer
 % figure
 % hold on
@@ -249,10 +259,15 @@ Z_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_EL));
 P_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_EL));
 
 %Cree une sous fonction de transfert pour trouver le Ka
-TF_Ka_EL = tf([1 -Z_EL], [1 -P_EL]) * TF_EL;
+TF_Ka_EL2 = tf([1 -Z_EL], [1 -P_EL]);
+TF_Ka_EL = TF_Ka_EL2 * TF_EL;
 
 %Calcul du K_AvPh_AZ
 K_AvPh_EL = 1/abs(evalfr(TF_Ka_EL, P_etoile_A));
+
+%Temporaire pour rapport
+TF_Ka_EL2 = TF_Ka_EL2 * K_AvPh_EL;
+clear TF_Ka_EL2
 
 %Nouvelle fonction de transfert d'avance de phase
 TF_AvPh_EL = TF_Ka_EL * K_AvPh_EL;
@@ -260,24 +275,47 @@ TF_AvPh_EL = TF_Ka_EL * K_AvPh_EL;
 %% Calcul pour PI Elevation Télescope A
 Diviser = 10;
 
-        %Valider c'est de combien qu'on ajouter
-        % figure
-        % hold on
-        % pzmap(TF_EL)
-        % scatter(real(P_etoile_A), imag(P_etoile_A), 100, "square", 'black')
+%Trouver les K_etoile avec erreurs
+[num_temp, den_temp] = tfdata(TF_AvPh_EL, 'v');
+Kvel_EL = (num_temp(end))/(den_temp(end-1));
+clear num_temp den_temp
+
+%Trouver le Ki 
+Ki_EL = 1 / (Kvel_EL * ERP_para_EL_A);
 
 %Trouver les poles et zeros
-Z_EL = real(P_etoile_A) / Diviser;
-
-%Cree une sous fonction de transfert pour trouver le Kpi
-TF_Kpi_EL = tf([1 -Z_EL], [1 0]) * TF_AvPh_EL;
+Z_PI_EL = real(P_etoile_A) / Diviser;
 
 %Calcul du K_PI_EL
-K_PI_EL = 1/abs(evalfr(TF_Kpi_EL, P_etoile_A));
+K_PI_EL = -Ki_EL/Z_PI_EL;
+
+%Cree une sous fonction de transfert pour trouver le Kpi
+TF_Kpi_EL = K_PI_EL * tf([1 -Z_PI_EL], [1 0]);
+
+%Temporaire pour rapport
+TF_Kpi_EL;
 
 %Nouvelle fonction de transfert de PI
-TF_Finale_EL = TF_Kpi_EL * K_PI_EL;
+TF_AvPh_PI_EL = TF_Kpi_EL * TF_AvPh_EL;
+
+TF_Finale_EL = TF_AvPh_PI_EL;
 TF_Finale_BF_EL = feedback(TF_Finale_EL, 1);
+
+%% Coupe bande EL Téléscope A
+% Omega_o = 54.8; %Peak sur le bode
+% X = 0.2; %
+% Kfcp = 1;
+% 
+% num = Kfcp*[1 1 Omega_o.^2];
+% den = [1 2*X*Omega_o Omega_o.^2];
+% 
+% TF_Coupe_Bande_EL = tf(num, den);
+% 
+% clear num den Omega_o X Kfcp
+% 
+% %Mettre Coupe-Bande sur les fonctions de transferts
+% TF_Finale_EL = TF_Coupe_Bande_EL * TF_AvPh_PI_EL;
+% TF_Finale_BF_EL = feedback(TF_Finale_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
@@ -327,33 +365,30 @@ y = lsim(TF_Finale_BF_EL, Parabole, temps);
 % ylabel("Amplitude");
 % xlabel("Time (secondes)")
 
-%% Validation système AZ
+%% Validation système EL
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
-stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0 1]);
+stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0.1 0.9])
 
 %on vérifie GM > 10 dB      RM > 0.09s
-[Gm, Pm, wcg, wcp] = margin(TF_Finale_EL);
-Pm;
-Gm = 20*log10(Gm);
-Rm = (Pm/wcp)*(pi/180);
+[Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_EL);
+Pm
+Gm = 20*log10(Gm)
+Rm = (Pm/wcp)*(pi/180)
 
-Z_EL;
-P_EL;
+Z_EL
+P_EL
  
-K_AvPh_EL;
-TF_AvPh_EL;
+K_AvPh_EL
+TF_AvPh_EL
 
-% Kvel_EL;
-% K_etoile_EL;
+Kvel_EL
 
-% P_RePh_EL;
-% Z_RePh_EL;
+Z_PI_EL
 
-% K_RePh_EL;
-% TF_RePh_AvPh_EL;
+TF_AvPh_PI_EL
 
-%disp("Temps Erreur Parabole");
-lsiminfo(Parabole-y', temps);
+disp("Temps Erreur Parabole");
+lsiminfo(Parabole-y', temps)
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp
