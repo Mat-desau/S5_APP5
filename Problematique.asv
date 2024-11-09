@@ -39,8 +39,7 @@ ERP_rampe_B = 0.005; %deg
 t_ERP_rampe_B = 8; %sec
 
 %% Conception spécifications Télescope A
-
-disp("_______________________________________ AZ ________________________________")
+disp("_______________________________________ A AZ ________________________________")
 Phi = rad2deg(atan(-pi/log(Mp_A/100)));
 Zeta = cosd(Phi);
 
@@ -122,7 +121,7 @@ clear TF_Kr_AZ2
 %Nouvelle fonction de transfert d'avance de phase et retard
 TF_RePh_AvPh_AZ = TF_Kr_AZ * K_RePh_AZ;
 
-%% Coupe bande AZ Téléscope 
+%% Coupe bande AZ Téléscope A
 Omega_o = 54.8; %Peak sur le bode
 X = 0.2; %
 Kfcp = 1;
@@ -139,7 +138,7 @@ TF_Finale_AZ = TF_Coupe_Bande_AZ * TF_RePh_AvPh_AZ;
 TF_Finale_BF_AZ = feedback(TF_Finale_AZ, 1);
 
 
-%% Demande pour rapport
+%% Demande pour rapport 
 %Rlocus du système avec les P desirer
 % figure
 % hold on
@@ -232,8 +231,9 @@ lsiminfo(Rampe-y', temps);
 
 
 
-disp("_______________________________________ EL ________________________________")
+
 %% Calcul pour avance phase cascades Elevation Télescope A
+disp("_______________________________________ A EL ________________________________")
 %Ajustement de P_etoile
 Ajout_Omega_n = 0;
 Ajout_Omega_a = 0;
@@ -296,8 +296,26 @@ TF_Kpi_EL = K_PI_EL * tf([1 -Z_PI_EL], [1 0]);
 TF_Kpi_EL;
 
 %Nouvelle fonction de transfert de PI
-TF_Finale_EL = TF_Kpi_EL * TF_AvPh_EL;
+TF_AvPh_PI_EL = TF_Kpi_EL * TF_AvPh_EL;
+
+TF_Finale_EL = TF_AvPh_PI_EL;
 TF_Finale_BF_EL = feedback(TF_Finale_EL, 1);
+
+%% Coupe bande EL Téléscope A
+% Omega_o = 54.8; %Peak sur le bode
+% X = 0.2; %
+% Kfcp = 1;
+% 
+% num = Kfcp*[1 1 Omega_o.^2];
+% den = [1 2*X*Omega_o Omega_o.^2];
+% 
+% TF_Coupe_Bande_EL = tf(num, den);
+% 
+% clear num den Omega_o X Kfcp
+% 
+% %Mettre Coupe-Bande sur les fonctions de transferts
+% TF_Finale_EL = TF_Coupe_Bande_EL * TF_AvPh_PI_EL;
+% TF_Finale_BF_EL = feedback(TF_Finale_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
@@ -349,10 +367,10 @@ y = lsim(TF_Finale_BF_EL, Parabole, temps);
 
 %% Validation système EL
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
-stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0 1]);
+stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0.1 0.9]);
 
 %on vérifie GM > 10 dB      RM > 0.09s
-[Gm, Pm, wcg, wcp] = margin(TF_Finale_EL);
+[Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_EL);
 Pm;
 Gm = 20*log10(Gm);
 Rm = (Pm/wcp)*(pi/180);
@@ -367,18 +385,52 @@ Kvel_EL;
 
 Z_PI_EL;
 
-TF_Finale_EL;
+TF_AvPh_PI_EL;
 
 %disp("Temps Erreur Parabole");
 lsiminfo(Parabole-y', temps);
 
                     %Effacer les non utiliser
-                    clear Gm Pm wcg wcp
+                    clear Gm Pm wcg wcp Zeta Phi Rm Omega_a Omega_n Parabole Rampe temps 
                     %Clear les variables
                     clear Kvel_EL Kvel_etoile_EL K_etoile_EL Z_RePh_EL P_RePh_EL TF_Ka_EL
                     clear P_etoile_A Ajout_Omega_n Ajout_Omega_a
                     %Clear les variables
                     clear TF_Ka_EL P_AZ Z_EL Phi_P_EL Phi_Z_EL Angle_EL Delta_Phi_EL Alpha_EL
+
+
+
+
+%% Conception spécifications Télescope B
+disp("_______________________________________ B AZ ________________________________")
+
+BW_B = 10; %rad/s
+PM_B = 50; %deg +- 1 deg
+
+%Erreurs
+ERP_rampe_B = 0.005; %deg
+t_ERP_rampe_B = 8; %sec
+
+Zeta = (0.5)*sqrt(tand(PM_B)*sind(PM_B))
+
+Omega_g_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta^4))-(2*Zeta^2))/(sqrt((1-(2*Zeta^2))+sqrt((4*Zeta^4)-(4*Zeta^2)+2))))
+
+K_etoile_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_AZ*i)))
+
+PM_AZ = angle(evalfr(TF_AZ*K_etoile_AZ, (Omega_g_AZ*i))) + 180
+
+Delta_phi_AZ = PM_B - PM_AZ
+
+Alpha_AZ = (1 - sind(Delta_phi_AZ)) / (1 + sind(Delta_phi_AZ))
+
+T = 1 / (Omega_g_AZ * sqrt(Alpha_AZ))
+
+Z_AZ = -1 / T
+P_AZ = - 1 / (Alpha_AZ * T)
+
+K_AvPh_AZ = K_etoile_AZ / sqrt(Alpha_AZ)
+
+TF_AvPh_AZ = K_AvPh_AZ * tf([1 -P_AZ], [1 -P_AZ])
 
 
 %Assurer la fin du document

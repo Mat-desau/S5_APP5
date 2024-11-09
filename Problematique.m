@@ -39,8 +39,7 @@ ERP_rampe_B = 0.005; %deg
 t_ERP_rampe_B = 8; %sec
 
 %% Conception spécifications Télescope A
-
-disp("_______________________________________ AZ ________________________________")
+disp("_______________________________________ A AZ ________________________________")
 Phi = rad2deg(atan(-pi/log(Mp_A/100)));
 Zeta = cosd(Phi);
 
@@ -232,8 +231,9 @@ lsiminfo(Rampe-y', temps);
 
 
 
-disp("_______________________________________ EL ________________________________")
+
 %% Calcul pour avance phase cascades Elevation Télescope A
+disp("_______________________________________ A EL ________________________________")
 %Ajustement de P_etoile
 Ajout_Omega_n = 0;
 Ajout_Omega_a = 0;
@@ -367,37 +367,77 @@ y = lsim(TF_Finale_BF_EL, Parabole, temps);
 
 %% Validation système EL
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
-stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0.1 0.9])
+stepinfo(TF_Finale_BF_EL, RiseTimeThreshold=[0.1 0.9]);
 
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_EL);
-Pm
-Gm = 20*log10(Gm)
-Rm = (Pm/wcp)*(pi/180)
+Pm;
+Gm = 20*log10(Gm);
+Rm = (Pm/wcp)*(pi/180);
 
-Z_EL
-P_EL
+Z_EL;
+P_EL;
  
-K_AvPh_EL
-TF_AvPh_EL
+K_AvPh_EL;
+TF_AvPh_EL;
 
-Kvel_EL
+Kvel_EL;
 
-Z_PI_EL
+Z_PI_EL;
 
-TF_AvPh_PI_EL
+TF_AvPh_PI_EL;
 
-disp("Temps Erreur Parabole");
-lsiminfo(Parabole-y', temps)
+%disp("Temps Erreur Parabole");
+lsiminfo(Parabole-y', temps);
 
                     %Effacer les non utiliser
-                    clear Gm Pm wcg wcp
+                    clear Gm Pm wcg wcp Zeta Phi Rm Omega_a Omega_n Parabole Rampe temps 
                     %Clear les variables
                     clear Kvel_EL Kvel_etoile_EL K_etoile_EL Z_RePh_EL P_RePh_EL TF_Ka_EL
                     clear P_etoile_A Ajout_Omega_n Ajout_Omega_a
                     %Clear les variables
                     clear TF_Ka_EL P_AZ Z_EL Phi_P_EL Phi_Z_EL Angle_EL Delta_Phi_EL Alpha_EL
 
+
+
+
+
+
+
+
+%% Conception spécifications Télescope B
+disp("_______________________________________ B AZ ________________________________")
+
+BW_B = 10; %rad/s
+PM_B = 50; %deg +- 1 deg
+
+%Erreurs
+ERP_rampe_B = 0.005; %deg
+t_ERP_rampe_B = 8; %sec
+
+Zeta = (0.5)*sqrt(tand(PM_B)*sind(PM_B))
+
+Omega_g_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta^4))-(2*Zeta^2))/(sqrt((1-(2*Zeta^2))+sqrt((4*Zeta^4)-(4*Zeta^2)+2))))
+
+K_etoile_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_AZ*i)))
+
+PM_AZ = angle(evalfr(TF_AZ*K_etoile_AZ, (Omega_g_AZ*i))) + 180
+
+Delta_phi_AZ = PM_B - PM_AZ
+
+Alpha_AZ = (1 - sind(Delta_phi_AZ)) / (1 + sind(Delta_phi_AZ))
+
+T = 1 / (Omega_g_AZ * sqrt(Alpha_AZ))
+
+Z_AZ = -1 / T
+P_AZ = - 1 / (Alpha_AZ * T)
+
+K_AvPh_AZ = K_etoile_AZ / sqrt(Alpha_AZ)
+
+%Pour rapport
+TF_AvPh_AZ2 = K_AvPh_AZ * tf([1 -P_AZ], [1 -P_AZ])
+
+TF_AvPh_AZ = TF_AvPh_AZ2 * TF_AZ
 
 %Assurer la fin du document
 disp("Hello World")
