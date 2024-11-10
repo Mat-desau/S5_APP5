@@ -4,6 +4,8 @@ clc
 clear all
 close all
 
+warning off
+
 %% Ajout de la trajectoire
 Profile_Tracking
 %la matrice-colonne de temps en secondes est dans ttrk
@@ -255,18 +257,18 @@ Phi_Z_A_EL = (Alpha_A_EL+Delta_Phi_A_EL)/2;
 Phi_P_A_EL = (Alpha_A_EL-Delta_Phi_A_EL)/2;
 
 %Trouver les poles et zeros
-Z_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_A_EL))
-P_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_A_EL))
+Z_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_A_EL));
+P_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_A_EL));
 
 %Cree une sous fonction de transfert pour trouver le Ka
 TF_Ka_A_EL2 = tf([1 -Z_A_EL], [1 -P_A_EL]);
 TF_Ka_A_EL = TF_Ka_A_EL2 * TF_EL;
 
 %Calcul du K_AvPh_AZ
-K_AvPh_A_EL = 1/abs(evalfr(TF_Ka_A_EL, P_etoile_A))
+K_AvPh_A_EL = 1/abs(evalfr(TF_Ka_A_EL, P_etoile_A));
 
 %Temporaire pour rapport
-TF_Ka_A_EL2 = TF_Ka_A_EL2 * K_AvPh_A_EL
+TF_Ka_A_EL2 = TF_Ka_A_EL2 * K_AvPh_A_EL;
 clear TF_Ka_A_EL2
 
 %Nouvelle fonction de transfert d'avance de phase
@@ -277,45 +279,45 @@ Diviser = 10;
 
 %Trouver les K_etoile avec erreurs
 [num_temp, den_temp] = tfdata(TF_AvPh_A_EL, 'v');
-Kvel_EL = (num_temp(end))/(den_temp(end-1))
+Kvel_EL = (num_temp(end))/(den_temp(end-1));
 clear num_temp den_temp
 
 %Trouver le Ki 
-Ki_A_EL = 1 / (Kvel_EL * ERP_para_EL_A)
+Ki_A_EL = 1 / (Kvel_EL * ERP_para_EL_A);
 
 %Trouver les poles et zeros
-Z_PI_A_EL = real(P_etoile_A) / Diviser
+Z_Re_A_EL = real(P_etoile_A) / Diviser;
 
 %Calcul du K_PI_EL
-K_PI_A_EL = -Ki_A_EL/Z_PI_A_EL
+K_Re_A_EL = -Ki_A_EL/Z_Re_A_EL;
 
 %Cree une sous fonction de transfert pour trouver le Kpi
-TF_Kpi_A_EL = K_PI_A_EL * tf([1 -Z_PI_A_EL], [1 0])
+TF_Kpi_A_EL = K_Re_A_EL * tf([1 -Z_Re_A_EL], [1 0]);
 
 %Temporaire pour rapport
-TF_Kpi_A_EL
+TF_Kpi_A_EL;
 
 %Nouvelle fonction de transfert de PI
-TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL
+TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL;
 
 TF_Finale_A_EL = TF_AvPh_PI_A_EL;
 TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Coupe bande EL Téléscope A
-% Omega_o = 54.8; %Peak sur le bode
-% X = 0.2; %
-% Kfcp = 1;
-% 
-% num_temp = Kfcp*[1 1 Omega_o.^2];
-% den_temp = [1 2*X*Omega_o Omega_o.^2];
-% 
-% TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
-% 
-% clear num_temp den_temp Omega_o X Kfcp
-% 
-% %Mettre Coupe-Bande sur les fonctions de transferts
-% TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
-% TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
+Omega_o = 54.8; %Peak sur le bode
+X = 0.2; %
+Kfcp = 1;
+
+num_temp = Kfcp*[1 1 Omega_o.^2];
+den_temp = [1 2*X*Omega_o Omega_o.^2];
+
+TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
+
+clear num_temp den_temp Omega_o X Kfcp
+
+%Mettre Coupe-Bande sur les fonctions de transferts
+TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
+TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
@@ -334,6 +336,7 @@ TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 %Erreur à une parabole uniaire du système
 temps = [0:0.1:30];
 Parabole = [0:0.1:30].^2;
+Parabole = Parabole./2;
 y_Parabole = lsim(TF_Finale_BF_A_EL, Parabole, temps);
 
 % figure
@@ -348,8 +351,8 @@ y_Parabole = lsim(TF_Finale_BF_A_EL, Parabole, temps);
 % xlabel("Time (secondes)")
 
 %Diagramme de bode du système
-figure
-margin(TF_Finale_A_EL)
+% figure
+% margin(TF_Finale_A_EL)
 
 %Erreur sur la trajectoire
 % figure
@@ -383,11 +386,11 @@ TF_AvPh_A_EL;
 
 Kvel_EL;
 
-Z_PI_A_EL;
+Z_Re_A_EL;
 
 TF_AvPh_PI_A_EL;
 
-%disp("Temps Erreur Parabole");
+disp("Temps Erreur Parabole");
 lsiminfo(Parabole-y_Parabole', temps)
 
                     %Effacer les non utiliser
@@ -408,41 +411,41 @@ lsiminfo(Parabole-y_Parabole', temps)
 %% Conception spécifications Télescope B
 disp("_______________________________________ B AZ ________________________________")
 %Calcul des valeurs demander pour le reste des calculs
-Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B))
+Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B));
 
 Omega_g_B_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta_B^4))-(2*Zeta_B^2))/(sqrt((1-(2*Zeta_B^2))+sqrt((4*Zeta_B^4)-(4*Zeta_B^2)+2))))
 
 %% Calcul pour avance phase Azimut Télescope B
 
 K_etoile_B_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_B_AZ*i)))
-PM_B_AZ = angle(evalfr(TF_AZ*K_etoile_B_AZ, (Omega_g_B_AZ*i))) + 180
+PM_B_AZ = rad2deg(angle(evalfr(TF_AZ*K_etoile_B_AZ, (Omega_g_B_AZ*i)))) - 360 + 180;
 
-Delta_phi_B_AZ = PM_B - PM_B_AZ
-Alpha_B_AZ = (1 - sind(Delta_phi_B_AZ)) / (1 + sind(Delta_phi_B_AZ))
+Delta_phi_B_AZ = PM_B - PM_B_AZ;
+Alpha_B_AZ = (1 - sind(Delta_phi_B_AZ)) / (1 + sind(Delta_phi_B_AZ));
 
-T_B_AZ = 1 / (Omega_g_B_AZ * sqrt(Alpha_B_AZ))
+T_B_AZ = 1 / (Omega_g_B_AZ * sqrt(Alpha_B_AZ));
 
 %On trouve pole et zeros
-Z_B_AZ = -1 / T_B_AZ
-P_B_AZ = - 1 / (Alpha_B_AZ * T_B_AZ)
+Z_B_AZ = -1 / T_B_AZ;
+P_B_AZ = - 1 / (Alpha_B_AZ * T_B_AZ);
 
-K_AvPh_A_AZ = K_etoile_B_AZ / sqrt(Alpha_B_AZ)
+K_AvPh_A_AZ = K_etoile_B_AZ / sqrt(Alpha_B_AZ);
 
 %Pour rapport
-TF_AvPh_B_AZ2 = K_AvPh_A_AZ * tf([1 -Z_B_AZ], [1 -P_B_AZ])
+TF_AvPh_B_AZ2 = K_AvPh_A_AZ * tf([1 -Z_B_AZ], [1 -P_B_AZ]);
 
 %Fonctiond de transfert
-TF_AvPh_B_AZ = TF_AvPh_B_AZ2 * TF_AZ
-[num_temp, den_temp] = tfdata(TF_AvPh_B_AZ, 'v')
+TF_AvPh_B_AZ = TF_AvPh_B_AZ2 * TF_AZ;
+[num_temp, den_temp] = tfdata(TF_AvPh_B_AZ, 'v');
 
 %% Calcul pour retard phase Azimut Téléscope B
 %On trouve les erreurs
-Kvel_B_AZ = num_temp(end)/den_temp(end-1)
-Kvel_etoile_B_AZ = 1 / (ERP_rampe_B)
+Kvel_B_AZ = num_temp(end)/den_temp(end-1);
+Kvel_etoile_B_AZ = 1 / (ERP_rampe_B);
 clear num_temp den_temp
 
 %Calcul du K_etoile
-K_etoile_B_AZ = Kvel_etoile_B_AZ / Kvel_B_AZ
+K_etoile_B_AZ = Kvel_etoile_B_AZ / Kvel_B_AZ;
 
 %On trace le graphique pour trouver à la main le Omega_g_etoile
 % figure
@@ -452,21 +455,27 @@ K_etoile_B_AZ = Kvel_etoile_B_AZ / Kvel_B_AZ
 % legend(["Sans K^*", "Avec K^*"])
 
 %Trouver valeur de T pour fonction de transfert
-T_B_AZ = 10 / Omega_g_B_AZ
+T_B_AZ = 10 / Omega_g_B_AZ;
 
 %Trouver poles et zeros
-Z_B_AZ = -1 / T_B_AZ
-P_B_AZ = -1 / (K_etoile_B_AZ * T_B_AZ)
+Z_B_AZ = -1 / T_B_AZ;
+P_B_AZ = -1 / (K_etoile_B_AZ * T_B_AZ);
 
 %Kr
-Kr = 1
+Kr = 1;
 
 %Fonction de transfert
-TF_RePh_B_AZ2 = Kr * tf([1 -Z_B_AZ], [1 -P_B_AZ])
+TF_RePh_B_AZ2 = Kr * tf([1 -Z_B_AZ], [1 -P_B_AZ]);
 
 %Fonction de transfert finale
-TF_Finale_B_AZ = TF_AvPh_B_AZ * TF_RePh_B_AZ2
-TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1)
+TF_Finale_B_AZ = TF_AvPh_B_AZ * TF_RePh_B_AZ2;
+TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
+
+
+
+
+
+
 
 %Assurer la fin du document
 disp("Hello World")
