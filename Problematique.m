@@ -140,53 +140,53 @@ TF_Finale_BF_A_AZ = feedback(TF_Finale_A_AZ, 1);
 
 %% Demande pour rapport 
 %Rlocus du système avec les P desirer
-figure
-hold on
-rlocus(TF_AZ, "red")
-rlocus(TF_Finale_A_AZ, "blue")
-scatter(real(P_etoile_A), imag(P_etoile_A), 50, "*", 'black')
-scatter(real(P_etoile_A), imag(-P_etoile_A), 50, "*", 'black')
-legend(["Original", "Finale", "Pole1", "Pole2"])
-xlim([-30, 10])
-ylim([-100, 100])
+% figure
+% hold on
+% rlocus(TF_AZ, "red")
+% rlocus(TF_Finale_A_AZ, "blue")
+% scatter(real(P_etoile_A), imag(P_etoile_A), 50, "*", 'black')
+% scatter(real(P_etoile_A), imag(-P_etoile_A), 50, "*", 'black')
+% legend(["Original", "Finale", "Pole1", "Pole2"])
+% xlim([-30, 10])
+% ylim([-100, 100])
 
 %Réponse à l'échelon unitaire
-figure;
-step(TF_Finale_BF_A_AZ);
+% figure;
+% step(TF_Finale_BF_A_AZ);
 
 %Erreur à une rampe uniaire du système
 temps = [0:0.1:30];
 Rampe = [0:0.1:30];
 y_Rampe = lsim(TF_Finale_BF_A_AZ, Rampe, temps);
 
-figure
-hold on
-box on
-plot(temps, y_Rampe', "blue")
-plot(temps, Rampe-y_Rampe', "red")
-plot(temps, Rampe, "black")
-legend(["Réponse", "Erreur", "Rampe"]);
-title("Erreur à une rampe unitaire");
-ylabel("Amplitude");
-xlabel("Time (secondes)")
+% figure
+% hold on
+% box on
+% plot(temps, y_Rampe', "blue")
+% plot(temps, Rampe-y_Rampe', "red")
+% plot(temps, Rampe, "black")
+% legend(["Réponse", "Erreur", "Rampe"]);
+% title("Erreur à une rampe unitaire");
+% ylabel("Amplitude");
+% xlabel("Time (secondes)")
 
 %Diagramme de bode du système
-figure
-margin(TF_Finale_A_AZ)
+% figure
+% margin(TF_Finale_A_AZ)
 
 %Erreur sur la trajectoire
-figure
-hold on
-box on
-y = lsim(TF_Finale_BF_A_AZ, utrk, ttrk);
-plot(ttrk, y, "blue")
-plot(ttrk, utrk-y, "red")
-plot(ttrk, utrk, "black")
-legend(["Réponse", "Erreur", "Trajectoire"]);
-%legend(["Erreur"])
-title("Erreur sur la trajectoire");
-ylabel("Amplitude");
-xlabel("Time (secondes)")
+% figure
+% hold on
+% box on
+% y = lsim(TF_Finale_BF_A_AZ, utrk, ttrk);
+% plot(ttrk, y, "blue")
+% plot(ttrk, utrk-y, "red")
+% plot(ttrk, utrk, "black")
+% legend(["Réponse", "Erreur", "Trajectoire"]);
+% %legend(["Erreur"])
+% title("Erreur sur la trajectoire");
+% ylabel("Amplitude");
+% xlabel("Time (secondes)")
 
 
 %% Validation système AZ
@@ -255,18 +255,18 @@ Phi_Z_A_EL = (Alpha_A_EL+Delta_Phi_A_EL)/2;
 Phi_P_A_EL = (Alpha_A_EL-Delta_Phi_A_EL)/2;
 
 %Trouver les poles et zeros
-Z_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_A_EL));
-P_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_A_EL));
+Z_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_Z_A_EL))
+P_A_EL = real(P_etoile_A)-(imag(P_etoile_A)/tand(Phi_P_A_EL))
 
 %Cree une sous fonction de transfert pour trouver le Ka
 TF_Ka_A_EL2 = tf([1 -Z_A_EL], [1 -P_A_EL]);
 TF_Ka_A_EL = TF_Ka_A_EL2 * TF_EL;
 
 %Calcul du K_AvPh_AZ
-K_AvPh_A_EL = 1/abs(evalfr(TF_Ka_A_EL, P_etoile_A));
+K_AvPh_A_EL = 1/abs(evalfr(TF_Ka_A_EL, P_etoile_A))
 
 %Temporaire pour rapport
-TF_Ka_A_EL2 = TF_Ka_A_EL2 * K_AvPh_A_EL;
+TF_Ka_A_EL2 = TF_Ka_A_EL2 * K_AvPh_A_EL
 clear TF_Ka_A_EL2
 
 %Nouvelle fonction de transfert d'avance de phase
@@ -277,26 +277,26 @@ Diviser = 10;
 
 %Trouver les K_etoile avec erreurs
 [num_temp, den_temp] = tfdata(TF_AvPh_A_EL, 'v');
-Kvel_EL = (num_temp(end))/(den_temp(end-1));
+Kvel_EL = (num_temp(end))/(den_temp(end-1))
 clear num_temp den_temp
 
 %Trouver le Ki 
-Ki_A_EL = 1 / (Kvel_EL * ERP_para_EL_A);
+Ki_A_EL = 1 / (Kvel_EL * ERP_para_EL_A)
 
 %Trouver les poles et zeros
-Z_PI_A_EL = real(P_etoile_A) / Diviser;
+Z_PI_A_EL = real(P_etoile_A) / Diviser
 
 %Calcul du K_PI_EL
-K_PI_A_EL = -Ki_A_EL/Z_PI_A_EL;
+K_PI_A_EL = -Ki_A_EL/Z_PI_A_EL
 
 %Cree une sous fonction de transfert pour trouver le Kpi
-TF_Kpi_A_EL = K_PI_A_EL * tf([1 -Z_PI_A_EL], [1 0]);
+TF_Kpi_A_EL = K_PI_A_EL * tf([1 -Z_PI_A_EL], [1 0])
 
 %Temporaire pour rapport
-TF_Kpi_A_EL;
+TF_Kpi_A_EL
 
 %Nouvelle fonction de transfert de PI
-TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL;
+TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL
 
 TF_Finale_A_EL = TF_AvPh_PI_A_EL;
 TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
@@ -319,51 +319,51 @@ TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
-figure
-hold on
-rlocus(TF_EL, "red")
-scatter(real(P_etoile_A), imag(P_etoile_A), 50, "*", 'black')
-scatter(real(P_etoile_A), imag(-P_etoile_A), 50, "*", 'black')
-xlim([-1400, 300])
-ylim([-200, 200])
+% figure
+% hold on
+% rlocus(TF_EL, "red")
+% scatter(real(P_etoile_A), imag(P_etoile_A), 50, "*", 'black')
+% scatter(real(P_etoile_A), imag(-P_etoile_A), 50, "*", 'black')
+% xlim([-1400, 300])
+% ylim([-200, 200])
 
 %Réponse à l'échelon unitaire
-figure;
-step(feedback(TF_Finale_A_EL,1));
+% figure;
+% step(feedback(TF_Finale_A_EL,1));
 
 %Erreur à une parabole uniaire du système
-temps = [0:0.1:2];
-Parabole = [0:0.1:2].^2;
+temps = [0:0.1:30];
+Parabole = [0:0.1:30].^2;
 y_Parabole = lsim(TF_Finale_BF_A_EL, Parabole, temps);
 
-figure
-hold on
-box on
-plot(temps, y_Parabole', "blue")
-plot(temps, Parabole-y_Parabole', "red")
-plot(temps, Parabole, "black")
-legend(["Réponse", "Erreur", "Parabole"]);
-title("Erreur à une rampe unitaire");
-ylabel("Amplitude");
-xlabel("Time (secondes)")
+% figure
+% hold on
+% box on
+% plot(temps, y_Parabole', "blue")
+% plot(temps, Parabole-y_Parabole', "red")
+% plot(temps, Parabole, "black")
+% legend(["Réponse", "Erreur", "Parabole"]);
+% title("Erreur à une rampe unitaire");
+% ylabel("Amplitude");
+% xlabel("Time (secondes)")
 
 %Diagramme de bode du système
 figure
 margin(TF_Finale_A_EL)
 
 %Erreur sur la trajectoire
-figure
-hold on
-box on
-y = lsim(TF_Finale_BF_A_EL, utrk, ttrk);
-%plot(ttrk, y, "blue")
-plot(ttrk, utrk-y, "red")
-%plot(ttrk, utrk, "black")
-%legend(["Réponse", "Erreur", "Trajectoire"]);
-legend(["Erreur"])
-title("Erreur sur la trajectoire");
-ylabel("Amplitude");
-xlabel("Time (secondes)")
+% figure
+% hold on
+% box on
+% y = lsim(TF_Finale_BF_A_EL, utrk, ttrk);
+% %plot(ttrk, y, "blue")
+% plot(ttrk, utrk-y, "red")
+% %plot(ttrk, utrk, "black")
+% %legend(["Réponse", "Erreur", "Trajectoire"]);
+% legend(["Erreur"])
+% title("Erreur sur la trajectoire");
+% ylabel("Amplitude");
+% xlabel("Time (secondes)")
 
 %% Validation système EL
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
@@ -388,7 +388,7 @@ Z_PI_A_EL;
 TF_AvPh_PI_A_EL;
 
 %disp("Temps Erreur Parabole");
-lsiminfo(Parabole-y_Parabole', temps);
+lsiminfo(Parabole-y_Parabole', temps)
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp Zeta Phi Rm Omega_a Omega_n Parabole Rampe temps 

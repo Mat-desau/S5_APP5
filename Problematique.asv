@@ -191,31 +191,31 @@ xlabel("Time (secondes)")
 
 %% Validation système AZ
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
-stepinfo(TF_Finale_BF_A_AZ, RiseTimeThreshold=[0 1]);
+stepinfo(TF_Finale_BF_A_AZ, RiseTimeThreshold=[0 1])
 
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_A_AZ);
-Pm;
-Gm = 20*log10(Gm);
-Rm = (Pm/wcp)*(pi/180);
+Pm
+Gm = 20*log10(Gm)
+Rm = (Pm/wcp)*(pi/180)
 
-Z_A_AZ;
-P_A_AZ;
+Z_A_AZ
+P_A_AZ
 
-K_AvPh_A_AZ;
-TF_AvPh_A_AZ;
+K_AvPh_A_AZ
+TF_AvPh_A_AZ
 
-Kvel_A_AZ;
-K_etoile_A_AZ;
+Kvel_A_AZ
+K_etoile_A_AZ
 
-P_RePh_A_AZ;
-Z_RePh_A_AZ;
+P_RePh_A_AZ
+Z_RePh_A_AZ
 
-K_RePh_A_AZ;
-TF_RePh_AvPh_A_AZ;
+K_RePh_A_AZ
+TF_RePh_AvPh_A_AZ
 
 %disp("Temps Erreur Rampe");
-lsiminfo(Rampe-y_Rampe', temps);
+lsiminfo(Rampe-y_Rampe', temps)
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp
@@ -332,15 +332,15 @@ figure;
 step(feedback(TF_Finale_A_EL,1));
 
 %Erreur à une parabole uniaire du système
-temps = [0:0.1:2];
-Parabole = [0:0.1:2].^2;
-y = lsim(TF_Finale_BF_A_EL, Parabole, temps);
+temps = [0:0.1:30];
+Parabole = [0:0.1:30].^2;
+y_Parabole = lsim(TF_Finale_BF_A_EL, Parabole, temps);
 
 figure
 hold on
 box on
-plot(temps, y', "blue")
-plot(temps, Parabole-y', "red")
+plot(temps, y_Parabole', "blue")
+plot(temps, Parabole-y_Parabole', "red")
 plot(temps, Parabole, "black")
 legend(["Réponse", "Erreur", "Parabole"]);
 title("Erreur à une rampe unitaire");
@@ -367,28 +367,28 @@ xlabel("Time (secondes)")
 
 %% Validation système EL
 %On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
-stepinfo(TF_Finale_BF_A_EL, RiseTimeThreshold=[0.1 0.9]);
+stepinfo(TF_Finale_BF_A_EL, RiseTimeThreshold=[0.1 0.9])
 
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_A_EL);
-Pm;
-Gm = 20*log10(Gm);
-Rm = (Pm/wcp)*(pi/180);
+Pm
+Gm = 20*log10(Gm)
+Rm = (Pm/wcp)*(pi/180)
 
-Z_A_EL;
-P_A_EL;
+Z_A_EL
+P_A_EL
  
-K_AvPh_A_EL;
-TF_AvPh_A_EL;
+K_AvPh_A_EL
+TF_AvPh_A_EL
 
-Kvel_EL;
+Kvel_EL
 
-Z_PI_A_EL;
+Z_PI_A_EL
 
-TF_AvPh_PI_A_EL;
+TF_AvPh_PI_A_EL
 
 %disp("Temps Erreur Parabole");
-lsiminfo(Parabole-y', temps);
+lsiminfo(Parabole-y_Parabole', temps)
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp Zeta Phi Rm Omega_a Omega_n Parabole Rampe temps 
