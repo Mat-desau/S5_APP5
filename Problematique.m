@@ -592,16 +592,16 @@ y_Rampe = lsim(TF_Finale_BF_B_AZ, Rampe, temps);
 disp("_________________ Valid ______________")
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_B_AZ);
-Pm
-Gm = 20*log10(Gm)
+Pm;
+Gm = 20*log10(Gm);
 
 [Gm, Pm, wcg, wcp] = margin(5*TF_Finale_B_AZ);
-Rm = (Pm/wcp)*(pi/180)
+Rm = (Pm/wcp)*(pi/180);
 
-BW_B_Calculer = bandwidth(TF_Finale_BF_B_AZ)
+BW_B_Calculer = bandwidth(TF_Finale_BF_B_AZ);
 
 %disp("Temps Erreur Rampe à 8 sec");
-Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8))
+Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8));
 % lsiminfo(Rampe-y_Rampe', temps)
 
                     %On enleve les non-utiliser
@@ -637,9 +637,9 @@ BW_B = 10; %rad/s
 PM_B = 50; %deg +- 1 deg
 
 %Ajustement
-Ajout_Angle = 0; 
-Multi_TF = 1; 
-Ajout_Omega_g = 0; 
+Ajout_Angle = -4.5; 
+Multi_TF = 0.7; 
+Ajout_Omega_g = 2.3; 
 
 %Calcul des valeurs demander pour le reste des calculs
 Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B));
@@ -653,18 +653,18 @@ K_etoile_B_EL = 1 / abs(evalfr(TF_EL, (Omega_g_B_EL*i)));
 PM_B_EL = rad2deg(angle(evalfr(TF_EL*K_etoile_B_EL, (Omega_g_B_EL*i)))) - 360 + 180;
 
 Delta_phi_B_EL = PM_B - PM_B_EL + 5 + Ajout_Angle
-Alpha_B_EL = (1 - sind(Delta_phi_B_EL)) / (1 + sind(Delta_phi_B_EL));
+Alpha_B_EL = (1 - sind(Delta_phi_B_EL)) / (1 + sind(Delta_phi_B_EL))
 
-T_B_EL = 1 / (Omega_g_B_EL * sqrt(Alpha_B_EL));
+T_B_EL = 1 / (Omega_g_B_EL * sqrt(Alpha_B_EL))
 
 %On trouve pole et zeros
-Z_B_EL = -1 / T_B_EL;
-P_B_EL = - 1 / (Alpha_B_EL * T_B_EL);
+Z_B_EL = -1 / T_B_EL
+P_B_EL = - 1 / (Alpha_B_EL * T_B_EL)
 
-K_AvPh_A_EL = Multi_TF * (K_etoile_B_EL / sqrt(Alpha_B_EL));
+K_AvPh_A_EL = Multi_TF * (K_etoile_B_EL / sqrt(Alpha_B_EL))
 
 %Pour rapport
-TF_AvPh_B_EL2 = K_AvPh_A_EL * tf([1 -Z_B_EL], [1 -P_B_EL]);
+TF_AvPh_B_EL2 = K_AvPh_A_EL * tf([1 -Z_B_EL], [1 -P_B_EL])
 
 %Fonctiond de transfert
 TF_AvPh_B_EL = TF_AvPh_B_EL2 * TF_EL;
@@ -672,104 +672,108 @@ TF_AvPh_B_EL = TF_AvPh_B_EL2 * TF_EL;
 
 %% Calcul pour retard phase Elevtion Téléscope B
 disp("_________________ Re _________________")
+Diviser = 10;
+
 %On trouve les erreurs
 Kvel_B_EL = num_temp(end)/den_temp(end-1);
 Kvel_etoile_B_EL = 1 / (ERP_rampe_B);
 clear num_temp den_temp
 
 %Calcul du K_etoile
-K_etoile_B_EL = Kvel_etoile_B_EL / Kvel_B_EL;
+K_etoile_B_EL = Kvel_etoile_B_EL / Kvel_B_EL
 
 
 %Trouver valeur de T pour fonction de transfert
-T_B_EL = 10 / Omega_g_B_EL;
+T_B_EL = Diviser / Omega_g_B_EL
 
 %Trouver poles et zeros
-Z_B_EL = -1 / T_B_EL;
-P_B_EL = -1 / (K_etoile_B_EL * T_B_EL);
+Z_B_EL = -1 / T_B_EL
+P_B_EL = -1 / (K_etoile_B_EL * T_B_EL)
 
 %Kr
 Kr = 1;
 
 %Fonction de transfert
-TF_RePh_B_EL2 = Kr * tf([1 -Z_B_EL], [1 -P_B_EL]);
+TF_RePh_B_EL2 = Kr * tf([1 -Z_B_EL], [1 -P_B_EL])
 
 %Fonction de transfert finale
 TF_Av_Re_B_EL = TF_AvPh_B_EL * TF_RePh_B_EL2;
 
-TF_Finale_B_EL = TF_Av_Re_B_EL
-TF_Finale_BF_B_EL = feedback(TF_Finale_B_EL, 1);
+% TF_Finale_B_EL = TF_Av_Re_B_EL;
+% TF_Finale_BF_B_EL = feedback(TF_Finale_B_EL, 1);
 
 %% Coupe bande AZ Téléscope B
 disp("_________________ Coupe ______________")
-% Omega_o = 122.5; %Peak sur le bode
-% X = 0.2; %
-% Kfcp = 1;
-% 
-% num_temp = Kfcp*[1 1 Omega_o.^2];
-% den_temp = [1 2*X*Omega_o Omega_o.^2];
-% 
-% TF_Coupe_Bande_B_EL = tf(num_temp, den_temp);
-% 
-% clear num_temp den_temp Omega_o X Kfcp
-% 
-% %Mettre Coupe-Bande sur les fonctions de transferts
-% TF_Finale_B_EL = TF_Coupe_Bande_B_EL * TF_Av_Re_B_EL;
-% TF_Finale_BF_B_EL = feedback(TF_Finale_B_EL, 1);
+Omega_o = 122.5; %Peak sur le bode
+X = 0.2; %
+Kfcp = 1;
+
+num_temp = Kfcp*[1 1 Omega_o.^2];
+den_temp = [1 2*X*Omega_o Omega_o.^2];
+
+TF_Coupe_Bande_B_EL = tf(num_temp, den_temp);
+
+clear num_temp den_temp Omega_o X Kfcp
+
+%Mettre Coupe-Bande sur les fonctions de transferts
+TF_Finale_B_EL = TF_Coupe_Bande_B_EL * TF_Av_Re_B_EL;
+TF_Finale_BF_B_EL = feedback(TF_Finale_B_EL, 1);
 
 %% Demande pour rapport 
 %Diagramme de bode du système
-% figure
-% margin(TF_Finale_B_EL)
+figure
+margin(TF_Finale_B_EL)
 
 %Réponse à l'échelon unitaire
-% figure;
-% step(TF_Finale_BF_B_EL);
+figure;
+step(TF_Finale_BF_B_EL);
 
 %Erreur à une rampe uniaire du système
 temps = [0:0.1:10];
 Rampe = [0:0.1:10];
 y_Rampe = lsim(TF_Finale_BF_B_EL, Rampe, temps);
 
-% figure
-% hold on
-% box on
-% plot(temps, y_Rampe', "blue")
-% plot(temps, Rampe-y_Rampe', "red")
-% plot(temps, Rampe, "black")
-% legend(["Réponse", "Erreur", "Rampe"]);
-% title("Erreur à une rampe unitaire");
-% ylabel("Amplitude");
-% xlabel("Time (secondes)")
+figure
+hold on
+box on
+plot(temps, y_Rampe', "blue")
+plot(temps, Rampe-y_Rampe', "red")
+plot(temps, Rampe, "black")
+legend(["Réponse", "Erreur", "Rampe"]);
+title("Erreur à une rampe unitaire");
+ylabel("Amplitude");
+xlabel("Time (secondes)")
 
 %Erreur sur la trajectoire
-% figure
-% hold on
-% box on
-% y = lsim(TF_Finale_BF_B_EL, utrk, ttrk);
-% %plot(ttrk, y, "blue")
-% plot(ttrk, utrk-y, "red")
-% %plot(ttrk, utrk, "black")
-% %legend(["Réponse", "Erreur", "Trajectoire"]);
-% legend(["Erreur"])
-% title("Erreur sur la trajectoire");
-% ylabel("Amplitude");
-% xlabel("Time (secondes)")
+figure
+hold on
+box on
+y = lsim(TF_Finale_BF_B_EL, utrk, ttrk);
+%plot(ttrk, y, "blue")
+plot(ttrk, utrk-y, "red")
+%plot(ttrk, utrk, "black")
+%legend(["Réponse", "Erreur", "Trajectoire"]);
+legend(["Erreur"])
+title("Erreur sur la trajectoire");
+ylabel("Amplitude");
+xlabel("Time (secondes)")
 
 
 %% Validation système AZ
 disp("_________________ Valid ______________")
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_B_EL);
-Pm;
-Gm = 20*log10(Gm);
-Rm = (Pm/wcp)*(pi/180);
+Pm
+Gm = 20*log10(Gm)
 
-BW_B_Calculer = bandwidth(TF_Finale_BF_B_EL);
+[Gm, Pm, wcg, wcp] = margin(5*TF_Finale_B_EL);
+Rm = (Pm/wcp)*(pi/180)
+
+BW_B_Calculer = bandwidth(TF_Finale_BF_B_EL)
 
 %disp("Temps Erreur Rampe à 8 sec");
-Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8));
-lsiminfo(Rampe-y_Rampe', temps);
+Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8))
+% lsiminfo(Rampe-y_Rampe', temps)
 
                     %On enleve les non-utiliser
                     clear BW_B PM_B Ajout_BW Ajout_PM Zeta_B Omega_g_B_EL
