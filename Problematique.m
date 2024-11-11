@@ -56,7 +56,7 @@ Phi = rad2deg(atan(-pi/log(Mp_A/100)));
 Zeta = cosd(Phi);
 
 %On doit trouver le plus grand des Omega_n
-%Omega_n = (1+(1*Zeta)+(1.4*(Zeta^2)))/Tr_10_A
+%Omega_n = (1+(1.1*Zeta)+(1.4*(Zeta^2)))/Tr_10_A
 Omega_n = 4/(Ts_A*Zeta);
 
 %On trouve Omega_a pour simplifier les P_etoile
@@ -186,11 +186,11 @@ y_Rampe = lsim(TF_Finale_BF_A_AZ, Rampe, temps);
 % xlabel("Time (secondes)")
 
 %Diagramme de bode du système
-figure
-hold on
-margin(TF_Finale_A_AZ, "blue")
-margin(TF_AZ, "red")
-legend(["Modifier", "Original"])
+% figure
+% hold on
+% margin(TF_Finale_A_AZ, "blue")
+% margin(TF_AZ, "red")
+% legend(["Modifier", "Original"])
 
 %Erreur sur la trajectoire
 % figure
@@ -389,11 +389,11 @@ y_Parabole = lsim(TF_Finale_BF_A_EL, Parabole, temps);
 % xlabel("Time (secondes)")
 
 %Diagramme de bode du système
-figure
-hold on
-margin(TF_Finale_A_EL, "blue")
-margin(TF_EL, "red")
-legend(["Modifier", "Original"])
+% figure
+% hold on
+% margin(TF_Finale_A_EL, "blue")
+% margin(TF_EL, "red")
+% legend(["Modifier", "Original"])
 
 %Erreur sur la trajectoire
 % figure
@@ -415,7 +415,7 @@ disp("_________________ Valid ______________")
 stepinfo(TF_Finale_BF_A_EL, RiseTimeThreshold=[0 1]);
 
 %on vérifie GM > 10 dB      RM > 0.09s
-[Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_A_EL);
+[Gm, Pm, wcg, wcp] = margin(TF_Finale_A_EL);
 Pm;
 Gm = 20*log10(Gm);
 Rm = (Pm/wcp)*(pi/180);
@@ -691,7 +691,6 @@ clear num_temp den_temp
 %Calcul du K_etoile
 K_etoile_B_EL = Kvel_etoile_B_EL / Kvel_B_EL;
 
-
 %Trouver valeur de T pour fonction de transfert
 T_B_EL = Diviser / Omega_g_B_EL;
 
@@ -771,17 +770,17 @@ y_Rampe = lsim(TF_Finale_BF_B_EL, Rampe, temps);
 % xlabel("Time (secondes)")
 
 
-%% Validation système AZ
+%% Validation système EL
 disp("_________________ Valid ______________")
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_B_EL);
-Pm;
-Gm = 20*log10(Gm);
+Pm
+Gm = 20*log10(Gm)
 
 [Gm, Pm, wcg, wcp] = margin(5*TF_Finale_B_EL);
-Rm = (Pm/wcp)*(pi/180);
+Rm = (Pm/wcp)*(pi/180)
 
-BW_B_Calculer = bandwidth(TF_Finale_BF_B_EL);
+BW_B_Calculer = bandwidth(TF_Finale_BF_B_EL)
 
 %disp("Temps Erreur Rampe à 8 sec");
 Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8));
