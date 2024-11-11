@@ -390,8 +390,8 @@ Z_Re_A_EL;
 
 TF_AvPh_PI_A_EL;
 
-disp("Temps Erreur Parabole");
-lsiminfo(Parabole-y_Parabole', temps)
+% disp("Temps Erreur Parabole");
+lsiminfo(Parabole-y_Parabole', temps);
 
                     %Effacer les non utiliser
                     clear Gm Pm wcg wcp Zeta Phi Rm Omega_a Omega_n Parabole Rampe temps 
@@ -413,11 +413,11 @@ disp("_______________________________________ B AZ _____________________________
 %Calcul des valeurs demander pour le reste des calculs
 Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B));
 
-Omega_g_B_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta_B^4))-(2*Zeta_B^2))/(sqrt((1-(2*Zeta_B^2))+sqrt((4*Zeta_B^4)-(4*Zeta_B^2)+2))))
+Omega_g_B_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta_B^4))-(2*Zeta_B^2))/(sqrt((1-(2*Zeta_B^2))+sqrt((4*Zeta_B^4)-(4*Zeta_B^2)+2))));
 
 %% Calcul pour avance phase Azimut Télescope B
 
-K_etoile_B_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_B_AZ*i)))
+K_etoile_B_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_B_AZ*i)));
 PM_B_AZ = rad2deg(angle(evalfr(TF_AZ*K_etoile_B_AZ, (Omega_g_B_AZ*i)))) - 360 + 180;
 
 Delta_phi_B_AZ = PM_B - PM_B_AZ;
@@ -468,10 +468,81 @@ Kr = 1;
 TF_RePh_B_AZ2 = Kr * tf([1 -Z_B_AZ], [1 -P_B_AZ]);
 
 %Fonction de transfert finale
-TF_Finale_B_AZ = TF_AvPh_B_AZ * TF_RePh_B_AZ2;
+TF_Av_Re_B_AZ = TF_AvPh_B_AZ * TF_RePh_B_AZ2;
+
+TF_Finale_B_AZ = TF_Av_Re_B_AZ;
 TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
 
+%% Coupe bande AZ Téléscope B
+Omega_o = 54.8; %Peak sur le bode
+X = 0.2; %
+Kfcp = 1;
 
+num_temp = Kfcp*[1 1 Omega_o.^2];
+den_temp = [1 2*X*Omega_o Omega_o.^2];
+
+TF_Coupe_Bande_B_AZ = tf(num_temp, den_temp)
+
+clear num_temp den_temp Omega_o X Kfcp
+
+%Mettre Coupe-Bande sur les fonctions de transferts
+TF_Finale_B_AZ = TF_Coupe_Bande_B_AZ * TF_Av_Re_B_AZ;
+TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
+
+%% Demande pour rapport 
+%Diagramme de bode du système
+figure
+margin(TF_Finale_B_AZ)
+
+%Réponse à l'échelon unitaire
+figure;
+step(TF_Finale_BF_B_AZ);
+
+%Erreur à une rampe uniaire du système
+temps = [0:0.1:30];
+Rampe = [0:0.1:30];
+y_Rampe = lsim(TF_Finale_BF_B_AZ, Rampe, temps);
+
+figure
+hold on
+box on
+plot(temps, y_Rampe', "blue")
+plot(temps, Rampe-y_Rampe', "red")
+plot(temps, Rampe, "black")
+legend(["Réponse", "Erreur", "Rampe"]);
+title("Erreur à une rampe unitaire");
+ylabel("Amplitude");
+xlabel("Time (secondes)")
+
+%Erreur sur la trajectoire
+figure
+hold on
+box on
+y = lsim(TF_Finale_BF_B_AZ, utrk, ttrk);
+%plot(ttrk, y, "blue")
+plot(ttrk, utrk-y, "red")
+%plot(ttrk, utrk, "black")
+%legend(["Réponse", "Erreur", "Trajectoire"]);
+legend(["Erreur"])
+title("Erreur sur la trajectoire");
+ylabel("Amplitude");
+xlabel("Time (secondes)")
+
+
+%% Validation système AZ
+%On vérifie Mp < 30%    Tr<0.25sec      ts< 1.20sec
+stepinfo(TF_Finale_BF_A_AZ, RiseTimeThreshold=[0 1]);
+
+%on vérifie GM > 10 dB      RM > 0.09s
+[Gm, Pm, wcg, wcp] = margin(TF_Finale_B_AZ);
+Pm
+Gm = 20*log10(Gm)
+Rm = (Pm/wcp)*(pi/180)
+
+BW_B_Calculer = bandwidth(TF_Finale_BF_B_AZ)
+
+disp("Temps Erreur Rampe");
+lsiminfo(Rampe-y_Rampe', temps);
 
 
 
