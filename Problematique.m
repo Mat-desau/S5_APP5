@@ -420,7 +420,7 @@ Omega_g_B_AZ = BW_B * (sqrt(sqrt(1+(4*Zeta_B^4))-(2*Zeta_B^2))/(sqrt((1-(2*Zeta_
 K_etoile_B_AZ = 1 / abs(evalfr(TF_AZ, (Omega_g_B_AZ*i)));
 PM_B_AZ = rad2deg(angle(evalfr(TF_AZ*K_etoile_B_AZ, (Omega_g_B_AZ*i)))) - 360 + 180;
 
-Delta_phi_B_AZ = PM_B - PM_B_AZ;
+Delta_phi_B_AZ = PM_B - PM_B_AZ
 Alpha_B_AZ = (1 - sind(Delta_phi_B_AZ)) / (1 + sind(Delta_phi_B_AZ));
 
 T_B_AZ = 1 / (Omega_g_B_AZ * sqrt(Alpha_B_AZ));
@@ -474,20 +474,20 @@ TF_Finale_B_AZ = TF_Av_Re_B_AZ;
 TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
 
 %% Coupe bande AZ Téléscope B
-Omega_o = 54.8; %Peak sur le bode
-X = 0.2; %
-Kfcp = 1;
-
-num_temp = Kfcp*[1 1 Omega_o.^2];
-den_temp = [1 2*X*Omega_o Omega_o.^2];
-
-TF_Coupe_Bande_B_AZ = tf(num_temp, den_temp)
-
-clear num_temp den_temp Omega_o X Kfcp
-
-%Mettre Coupe-Bande sur les fonctions de transferts
-TF_Finale_B_AZ = TF_Coupe_Bande_B_AZ * TF_Av_Re_B_AZ;
-TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
+% Omega_o = 54.8; %Peak sur le bode
+% X = 0.2; %
+% Kfcp = 1;
+% 
+% num_temp = Kfcp*[1 1 Omega_o.^2];
+% den_temp = [1 2*X*Omega_o Omega_o.^2];
+% 
+% TF_Coupe_Bande_B_AZ = tf(num_temp, den_temp)
+% 
+% clear num_temp den_temp Omega_o X Kfcp
+% 
+% %Mettre Coupe-Bande sur les fonctions de transferts
+% TF_Finale_B_AZ = TF_Coupe_Bande_B_AZ * TF_Av_Re_B_AZ;
+% TF_Finale_BF_B_AZ = feedback(TF_Finale_B_AZ, 1);
 
 %% Demande pour rapport 
 %Diagramme de bode du système
@@ -499,8 +499,8 @@ figure;
 step(TF_Finale_BF_B_AZ);
 
 %Erreur à une rampe uniaire du système
-temps = [0:0.1:30];
-Rampe = [0:0.1:30];
+temps = [0:0.1:10];
+Rampe = [0:0.1:10];
 y_Rampe = lsim(TF_Finale_BF_B_AZ, Rampe, temps);
 
 figure
@@ -541,8 +541,9 @@ Rm = (Pm/wcp)*(pi/180)
 
 BW_B_Calculer = bandwidth(TF_Finale_BF_B_AZ)
 
-disp("Temps Erreur Rampe");
-lsiminfo(Rampe-y_Rampe', temps);
+disp("Temps Erreur Rampe à 8 sec");
+Erreur = Rampe(find(temps == 8))-y_Rampe(find(temps == 8))
+lsiminfo(Rampe-y_Rampe', temps)
 
 
 
