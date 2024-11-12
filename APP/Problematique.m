@@ -273,9 +273,9 @@ lsiminfo(Rampe-y_Rampe', temps);
 %% Calcul pour avance phase cascades Elevation Télescope A
 disp("_______________________________________ A EL ________________________________")
 %Ajustement de P_etoile
-Ajout_Omega_n = 0; %-3
-Ajout_Omega_a = 0; %8
-Diviser = 10; %7.2
+Ajout_Omega_n = -3; %-3
+Ajout_Omega_a = 8; %8
+Diviser = 7.2; %7.2
 
 disp("_________________ Av _________________")
 %On trouve P_etoile
@@ -338,25 +338,25 @@ TF_Kpi_A_EL;
 %Nouvelle fonction de transfert de PI
 TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL;
 
-TF_Finale_A_EL = TF_AvPh_PI_A_EL;
-TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
+% TF_Finale_A_EL = TF_AvPh_PI_A_EL;
+% TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Coupe bande EL Téléscope A
 disp("_________________ Coupe ______________")
-% Omega_o = 122.5; %Peak sur le bode
-% X = 0.2; %gere la largeur
-% Kfcp = 1;
-% 
-% num_temp = Kfcp*[1 1 Omega_o.^2];
-% den_temp = [1 2*X*Omega_o Omega_o.^2];
-% 
-% TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
-% 
-% clear num_temp den_temp Omega_o X Kfcp
-% 
-% %Mettre Coupe-Bande sur les fonctions de transferts
-% TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
-% TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
+Omega_o = 122.5; %Peak sur le bode
+X = 0.2; %gere la largeur
+Kfcp = 1;
+
+num_temp = Kfcp*[1 1 Omega_o.^2];
+den_temp = [1 2*X*Omega_o Omega_o.^2];
+
+TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
+
+clear num_temp den_temp Omega_o X Kfcp
+
+%Mettre Coupe-Bande sur les fonctions de transferts
+TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
+TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
