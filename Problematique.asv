@@ -63,8 +63,8 @@ Omega_n = 4/(Ts_A*Zeta);
 Omega_a = Omega_n*sqrt(1-Zeta^2);
 
 %Ajustement de P_etoile
-Ajout_Omega_n = -1.3;
-Ajout_Omega_a = -5;
+Ajout_Omega_n = -1.3; %-1.3
+Ajout_Omega_a = -5; %-5
 
 %On trouve P_etoile
 P_etoile_A = (-Zeta*Omega_n + Ajout_Omega_n) + (Omega_a + Ajout_Omega_a)*i;
@@ -135,6 +135,9 @@ clear TF_Kr_A_AZ2
 %Nouvelle fonction de transfert d'avance de phase et retard
 TF_RePh_AvPh_A_AZ = TF_Kr_A_AZ * K_RePh_A_AZ;
 
+% TF_Finale_A_AZ = TF_RePh_AvPh_A_AZ
+% TF_Finale_BF_A_AZ = feedback(TF_Finale_A_AZ, 1);
+
 %% Coupe bande AZ Téléscope A
 disp("_________________ Coupe ______________")
 Omega_o = 54.8; %Peak sur le bode
@@ -177,10 +180,10 @@ y_Rampe = lsim(TF_Finale_BF_A_AZ, Rampe, temps);
 % figure
 % hold on
 % box on
-% plot(temps, y_Rampe', "blue")
+% % plot(temps, y_Rampe', "blue")
 % plot(temps, Rampe-y_Rampe', "red")
-% plot(temps, Rampe, "black")
-% legend(["Réponse", "Erreur", "Rampe"]);
+% % plot(temps, Rampe, "black")
+% % legend(["Réponse", "Erreur", "Rampe"]);
 % title("Erreur à une rampe unitaire");
 % ylabel("Amplitude");
 % xlabel("Time (secondes)")
@@ -270,8 +273,9 @@ lsiminfo(Rampe-y_Rampe', temps);
 %% Calcul pour avance phase cascades Elevation Télescope A
 disp("_______________________________________ A EL ________________________________")
 %Ajustement de P_etoile
-Ajout_Omega_n = -3; %-3
-Ajout_Omega_a = 8; %8
+Ajout_Omega_n = 0; %-3
+Ajout_Omega_a = 0; %8
+Diviser = 10; %7.2
 
 disp("_________________ Av _________________")
 %On trouve P_etoile
@@ -310,7 +314,6 @@ TF_AvPh_A_EL = TF_Ka_A_EL * K_AvPh_A_EL;
 
 %% Calcul pour PI Elevation Télescope A
 disp("_________________ PI _________________")
-Diviser = 7.2; %7.2
 
 %Trouver les K_etoile avec erreurs
 [num_temp, den_temp] = tfdata(TF_AvPh_A_EL, 'v');
@@ -335,25 +338,25 @@ TF_Kpi_A_EL;
 %Nouvelle fonction de transfert de PI
 TF_AvPh_PI_A_EL = TF_Kpi_A_EL * TF_AvPh_A_EL;
 
-% TF_Finale_A_EL = TF_AvPh_PI_A_EL;
-% TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
+TF_Finale_A_EL = TF_AvPh_PI_A_EL;
+TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Coupe bande EL Téléscope A
 disp("_________________ Coupe ______________")
-Omega_o = 122.5; %Peak sur le bode
-X = 0.2; %gere la largeur
-Kfcp = 1;
-
-num_temp = Kfcp*[1 1 Omega_o.^2];
-den_temp = [1 2*X*Omega_o Omega_o.^2];
-
-TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
-
-clear num_temp den_temp Omega_o X Kfcp
-
-%Mettre Coupe-Bande sur les fonctions de transferts
-TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
-TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
+% Omega_o = 122.5; %Peak sur le bode
+% X = 0.2; %gere la largeur
+% Kfcp = 1;
+% 
+% num_temp = Kfcp*[1 1 Omega_o.^2];
+% den_temp = [1 2*X*Omega_o Omega_o.^2];
+% 
+% TF_Coupe_Bande_A_EL = tf(num_temp, den_temp);
+% 
+% clear num_temp den_temp Omega_o X Kfcp
+% 
+% %Mettre Coupe-Bande sur les fonctions de transferts
+% TF_Finale_A_EL = TF_Coupe_Bande_A_EL * TF_AvPh_PI_A_EL;
+% TF_Finale_BF_A_EL = feedback(TF_Finale_A_EL, 1);
 
 %% Demande pour rapport
 %Rlocus du système avec les P desirer
@@ -415,7 +418,7 @@ disp("_________________ Valid ______________")
 stepinfo(TF_Finale_BF_A_EL, RiseTimeThreshold=[0 1]);
 
 %on vérifie GM > 10 dB      RM > 0.09s
-[Gm, Pm, wcg, wcp] = margin(TF_AvPh_PI_A_EL);
+[Gm, Pm, wcg, wcp] = margin(TF_Finale_A_EL);
 Pm;
 Gm = 20*log10(Gm);
 Rm = (Pm/wcp)*(pi/180);
@@ -472,9 +475,10 @@ lsiminfo(Parabole-y_Parabole', temps);
 %% Conception spécifications Télescope B
 disp("_______________________________________ B AZ ________________________________")
 %Ajustement
-Ajout_Angle = -4.5; %-4.2
-Multi_TF = 0.58; %0.59
-Ajout_Omega_g = 2.3; %2.2176
+Ajout_Angle = -4.5; %-4.5
+Multi_TF = 0.58; %0.58
+Ajout_Omega_g = 2.3; %2.3
+Diviser = 9; %9
 
 %Calcul des valeurs demander pour le reste des calculs
 Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B));
@@ -507,8 +511,6 @@ TF_AvPh_B_AZ = TF_AvPh_B_AZ2 * TF_AZ;
 
 %% Calcul pour retard phase Azimut Téléscope B
 disp("_________________ Re _________________")
-
-Diviser = 9;
 
 %On trouve les erreurs
 Kvel_B_AZ = num_temp(end)/den_temp(end-1);
@@ -646,9 +648,10 @@ BW_B = 10; %rad/s
 PM_B = 50; %deg +- 1 deg
 
 %Ajustement
-Ajout_Angle = -4.5; 
-Multi_TF = 0.7; 
-Ajout_Omega_g = 2.3; 
+Ajout_Angle = -4.5; %-4.5
+Multi_TF = 0.7; %0.7
+Ajout_Omega_g = 2.3;    %2.3 
+Diviser = 10; %10
 
 %Calcul des valeurs demander pour le reste des calculs
 Zeta_B = (0.5)*sqrt(tand(PM_B)*sind(PM_B));
@@ -681,7 +684,6 @@ TF_AvPh_B_EL = TF_AvPh_B_EL2 * TF_EL;
 
 %% Calcul pour retard phase Elevtion Téléscope B
 disp("_________________ Re _________________")
-Diviser = 10;
 
 %On trouve les erreurs
 Kvel_B_EL = num_temp(end)/den_temp(end-1);
@@ -690,7 +692,6 @@ clear num_temp den_temp
 
 %Calcul du K_etoile
 K_etoile_B_EL = Kvel_etoile_B_EL / Kvel_B_EL;
-
 
 %Trouver valeur de T pour fonction de transfert
 T_B_EL = Diviser / Omega_g_B_EL;
@@ -771,7 +772,7 @@ y_Rampe = lsim(TF_Finale_BF_B_EL, Rampe, temps);
 % xlabel("Time (secondes)")
 
 
-%% Validation système AZ
+%% Validation système EL
 disp("_________________ Valid ______________")
 %on vérifie GM > 10 dB      RM > 0.09s
 [Gm, Pm, wcg, wcp] = margin(TF_Finale_B_EL);
