@@ -64,31 +64,31 @@ G = tf([1], [1 2]) * tf([1], [1 2]) * tf([1], [1 3])
 %Etape 4 Angle poles zero
 %Etape 5 Gain
 
-Phi = atand((-pi)/log(25/100));
+Phi = atand((-pi)/log(25/100))
 
-Zeta = cosd(Phi);
+Zeta = cosd(Phi)
 
-Wn = 4/(Zeta*1.6);
+Wn = 4/(Zeta*1.6)
 
-Wa = Wn*sqrt(1-Zeta^2);
+Wa = Wn*sqrt(1-Zeta^2)
 
 %a) 
-P_etoile = (-Zeta*Wn) + (Wa*i);
+P_etoile = (-Zeta*Wn) + (Wa*i)
 
 %b)
-Angle = rad2deg(angle(evalfr(G, P_etoile)))-360;
-Delta_Phi = -180 - Angle;
+Angle = rad2deg(angle(evalfr(G, P_etoile)))-360
+Delta_Phi = -180 - Angle
 
-Coordo = P_etoile - (-1);
-Phi_z = rad2deg(angle(Coordo));
+Coordo = P_etoile - (-1)
+Phi_z = rad2deg(angle(Coordo))
 
-Variation = Phi_z - Delta_Phi;
+Variation = Phi_z - Delta_Phi
 
 %c)
-Phi_p = -(Delta_Phi - Phi_z);
+Phi_p = -(Delta_Phi - Phi_z)
 
 P = real(P_etoile)-(imag(P_etoile)/tand(Phi_p));
-Z = -1;
+Z = -1
 
 %d)
 TF = tf([1 -Z], [1 -P]);
